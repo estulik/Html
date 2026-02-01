@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sprachcafé Style Mahjong Rules</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            margin: 40px;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 40px;
+            box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 10px;
+        }
+        h1 {
+            color: #c62828;
+            text-align: center;
+            border-bottom: 3px solid #c62828;
+            padding-bottom: 15px;
+            font-size: 32px;
+        }
+        h2 {
+            color: #283593;
+            margin-top: 30px;
+            padding-left: 15px;
+            border-left: 5px solid #283593;
+            font-size: 24px;
+        }
+        h3 {
+            color: #2e7d32;
+            margin-top: 25px;
+            font-size: 20px;
+        }
+        h4 {
+            color: #6a1b9a;
+            margin-top: 20px;
+            font-size: 18px;
+        }
+        .highlight {
+            background-color: #fff3e0;
+            padding: 15px;
+            border-left: 4px solid #ff9800;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        th {
+            background-color: #283593;
+            color: white;
+            padding: 12px;
+            text-align: left;
+        }
+        td {
+            padding: 12px;
+            border-bottom: 1px solid #ddd;
+        }
+        tr:hover {
+            background-color: #f5f5f5;
+        }
+        .rule-box {
+            border: 2px solid #4caf50;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 8px;
+            background-color: #e8f5e9;
+        }
+        .money-note {
+            background-color: #e3f2fd;
+            border: 2px dashed #2196f3;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .action-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 25px 0;
+        }
+        .action-card {
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 3px 6px rgba(0,0,0,0.1);
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            color: #666;
+            font-size: 14px;
+        }
+        .important {
+            background-color: #ffebee;
+            color: #c62828;
+            padding: 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            margin: 15px 0;
+        }
+        ol {
+            padding-left: 25px;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎲 Sprachcafé Style Mahjong</h1>
+        
+        <h2>Introduction</h2>
+        <p>Sprachcafé Style Mahjong, also known as Cantonese or Hong Kong Mahjong, is a popular variation characterized by its fast pace and exciting bonus rules.</p>
+        
+        <h2>Basic Setup</h2>
+        <div class="highlight">
+            <p><strong>Players:</strong> 4 players<br>
+            <strong>Tiles:</strong> 136 tiles (no flowers or seasons)<br>
+            <strong>Starting Wind:</strong> Determined by dice roll<br>
+            <strong>Dealer:</strong> East Wind starts the game</p>
+        </div>
+        
+        <h2>Tile Combinations & Actions</h2>
+        
+        <h3>Pong (碰)</h3>
+        <div class="rule-box">
+            <p><strong>What it is:</strong> 3 identical tiles</p>
+            <p><strong>When to use:</strong> When any player discards a tile that matches 2 tiles already in your hand</p>
+            <p><strong>How to declare:</strong> Say "Pong!" immediately and take the discarded tile</p>
+            <p><strong>Placement:</strong> Place the 3 tiles face-up on your side and discard one tile to end your turn </p>
+            <p><strong>Effect:</strong> Play continues from your position</p>
+        </div>
+        
+        <h3>Kong (杠)</h3>
+        <div class="rule-box">
+            <p><strong>What it is:</strong> 4 identical tiles</p>
+            <p><strong>Two Types:</strong></p>
+            <ul>
+                <li><strong>Concealed Kong:</strong> All 4 tiles come from your hand (declare after self-draw)</li>
+                <li><strong>Exposed Kong:</strong> Using a discarded tile to complete 4 of a kind</li>
+            </ul>
+            <p><strong>How to declare:</strong> Say "Kong!" loudly and place tiles face-up</p>
+            <p>When a player declares Concealed Kong, <strong>ALL other players must immediately pay 1 yuan bonus fee</strong> to that player.</p>
+            <p>When a player declares Exposed Kong, <strong>ONLY the player how discarded the tile used for Kong must pay 1 yuan bonus fee</strong> to that player.</p>
+            <p><strong>After Kong:</strong> Draw a supplement tile from the back end of the wall</p>
+
+        </div>
+        
+        
+        <h3>Chi (吃)</h3>
+        <div class="rule-box">
+            <p><strong>What it is:</strong> 3 consecutive numbers in the same suit (e.g., 4, 5, 6 of Bamboo)</p>
+            <p><strong>When to use:</strong> <span class="important">ONLY from the player immediately to your left</span></p>
+            <p><strong>How to declare:</strong> Say "Chi!" and take the discarded tile</p>
+            <p><strong>Restriction:</strong> Cannot Chi from players across or to your right</p>
+            <p><strong>Placement:</strong> Place the sequence face-up on your side</p>
+        </div>
+        
+        <h2>Winning (Hu 胡)</h2>
+        <p><strong>Standard Winning Hand:</strong> 4 sets (Pong, Kong, or Chi) + 1 pair</p>
+        <p><strong>Two Ways to Win:</strong></p>
+        <table>
+            <tr>
+                <th>Type</th>
+                <th>How</th>
+                <th>Payment</th>
+            </tr>
+            <tr>
+                <td><strong>Self-Draw Win</strong></td>
+                <td>Drawing the winning tile from the wall</td>
+                <td>All 3 opponents pay</td>
+            </tr>
+            <tr>
+                <td><strong>Win by Discard</strong></td>
+                <td>Winning on another player's discard</td>
+                <td>Only the discarder pays</td>
+            </tr>
+        </table>
+        <p><strong>Declaration:</strong> Shout "Hu!" immediately and reveal your complete hand</p>
+        
+      
+
+        <h2>Action Priority Order</h2>
+        <div class="action-grid">
+            <div class="action-card">
+                <h4>🎯 Win (Hu)</h4>
+                <p>Highest priority<br>Immediate Win</p>
+            </div>
+            <div class="action-card">
+                <h4>🀄 Kong</h4>
+                <p>Second priority<br>Triggers bonus payments</p>
+            </div>
+            <div class="action-card">
+                <h4>👊 Pong</h4>
+                <p>Third priority<br>From any player</p>
+            </div>
+            <div class="action-card">
+                <h4>➡️ Chi</h4>
+                <p>Fourth priority<br>Only from left player</p>
+            </div>
+        </div>
+        
+      
+        <h2>Flow of Play</h2>
+        <ol>
+            <li><strong>Build the wall:</strong> All tiles are shuffled and built into a square wall (17 stacks × 2 high)</li>
+            <li><strong>Break the wall:</strong> Dealer rolls dice to determine where to break the wall</li>
+            <li><strong>Draw starting tiles:</strong> Each player draws 13 tiles (in sets of 4-4-4-1)</li>
+            <li><strong>Dealer starts:</strong> Dealer draws 14th tile to begin the game</li>
+            <li><strong>Game proceeds:</strong> Players take turns drawing and discarding tiles</li>
+            <li><strong>Calling actions:</strong> Follow priority order: Win → Kong → Pong → Chi</li>
+            <li><strong>Game ends when:</strong>
+                <ul>
+                    <li>A player declares a winning hand (Hu)</li>
+                    <li>No tiles remain in the wall (draw game)</li>
+                </ul>
+            </li>
+        </ol>
+        
+        <div class="footer">
+            <p>Enjoy playing Mahjong!</p>
+            <p>Document prepared for educational purposes | Sprachcafe Mahjong Rules</p>
+        </div>
+    </div>
+</body>
+</html>
