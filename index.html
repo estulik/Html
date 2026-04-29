@@ -20,6 +20,7 @@
         button:hover { background: #1a237e; }
         .rule-box { border: 2px solid #4caf50; padding: 20px; margin: 25px 0; border-radius: 8px; background-color: #e8f5e9; }
         #join-section, #admin-section { display: none; }
+        .danger-zone { margin-top: 20px; border-top: 2px dashed #c62828; padding-top: 15px; }
     </style>
 </head>
 <body>
@@ -33,7 +34,7 @@
                     <tr><th>Name</th><th>Punkte</th><th>Kommentar</th></tr>
                 </thead>
                 <tbody id="leaderboard-body">
-                    <tr><td colspan="3">Fetching data...</td></tr>
+                    <tr><td colspan="3">Connecting to table...</td></tr>
                 </tbody>
             </table>
 
@@ -44,18 +45,24 @@
 
             <div id="admin-panel" class="admin-panel">
                 <div id="join-section" style="border-bottom: 1px solid #ccc; padding-bottom: 15px;">
-                    <h4>New Player (Code: 2026)</h4>
+                    <h4>New Player</h4>
                     <input type="text" id="reg-name" placeholder="Name">
-                    <input type="text" id="reg-comm" placeholder="Kommentar">
+                    <input type="text" id="reg-comm" placeholder="Initial Kommentar">
                     <button onclick="registerPlayer()">Add Player</button>
                 </div>
 
                 <div id="admin-section" style="padding-top: 15px;">
-                    <h4>Update Stats (Code: bluesky)</h4>
+                    <h4>Update Stats</h4>
                     <select id="player-select"></select>
                     <input type="number" id="point-change" placeholder="+/- Punkte">
                     <input type="text" id="comm-update" placeholder="New Kommentar">
                     <button onclick="updateStats()">Save Changes</button>
+
+                    <div class="danger-zone">
+                        <h4 style="color: #c62828;">Danger Zone: Delete Player</h4>
+                        <select id="delete-player-select"></select>
+                        <button onclick="deletePlayer()" style="background: #c62828;">Delete Permanently</button>
+                    </div>
                 </div>
                 
                 <button onclick="location.reload()" style="background:#666; font-size: 11px;">Lock & Logout</button>
@@ -64,7 +71,7 @@
 
         <h2>Rules</h2>
         <div class="rule-box">
-            <p><strong>Win (Hu):</strong> 4 sets and 1 pair. Declare "Hu!" to win.</p>
+            <p><strong>Win (Hu):</strong> 4 sets and 1 pair. Declare "Hu!" to win the round.</p>
         </div>
     </div>
 
@@ -76,7 +83,6 @@
         const ADMIN_PASS = "bluesky";
         // ---------------------
 
-        // Initialize Supabase ONLY ONCE
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function fetchScores() {
@@ -87,6 +93,7 @@
 
             const tbody = document.getElementById('leaderboard-body');
             const select = document.getElementById('player-select');
+            const deleteSelect = document.getElementById('delete-player-select');
 
             if (error) {
                 tbody.innerHTML = `<tr><td colspan="3" style="color:red">Error: ${error.message}</td></tr>`;
@@ -95,6 +102,7 @@
             
             tbody.innerHTML = '';
             select.innerHTML = '';
+            deleteSelect.innerHTML = '';
 
             if (!data || data.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="3">No players found.</td></tr>';
@@ -103,7 +111,10 @@
 
             data.forEach(player => {
                 tbody.innerHTML += `<tr><td>${player.Name}</td><td><b>${(player.Punkte || 0).toLocaleString()}</b></td><td><i>${player.Kommentar || ''}</i></td></tr>`;
-                select.innerHTML += `<option value="${player.Name}">${player.Name}</option>`;
+                
+                const opt = `<option value="${player.Name}">${player.Name}</option>`;
+                select.innerHTML += opt;
+                deleteSelect.innerHTML += opt;
             });
         }
 
@@ -120,52 +131,4 @@
                 document.getElementById('auth-section').style.display = 'none';
             } else if (pw === JOIN_PASS) {
                 panel.style.display = 'block';
-                joinSec.style.display = 'block';
-                adminSec.style.display = 'none';
-                document.getElementById('auth-section').style.display = 'none';
-            } else { 
-                alert("Wrong passcode!"); 
-            }
-        }
-
-        async function registerPlayer() {
-            const name = document.getElementById('reg-name').value.trim();
-            const comm = document.getElementById('reg-comm').value.trim();
-            if (!name) return alert("Name is required");
-
-            const { error } = await supabaseClient
-                .from('Mahjong')
-                .insert([{ Name: name, Punkte: 0, Kommentar: comm }]);
-
-            if (error) alert("Error: " + error.message);
-            else {
-                document.getElementById('reg-name').value = '';
-                document.getElementById('reg-comm').value = '';
-                fetchScores();
-            }
-        }
-
-        async function updateStats() {
-            const name = document.getElementById('player-select').value;
-            const pChange = parseInt(document.getElementById('point-change').value) || 0;
-            const newComm = document.getElementById('comm-update').value.trim();
-
-            let { data, error: fetchError } = await supabaseClient.from('Mahjong').select('Punkte').eq('Name', name).single();
-            if (fetchError) return alert(fetchError.message);
-
-            let updates = { Punkte: (data.Punkte || 0) + pChange };
-            if (newComm !== "") updates.Kommentar = newComm;
-
-            const { error: updateError } = await supabaseClient.from('Mahjong').update(updates).eq('Name', name);
-            if (updateError) alert("Update Error: " + updateError.message);
-            else {
-                document.getElementById('point-change').value = '';
-                document.getElementById('comm-update').value = '';
-                fetchScores();
-            }
-        }
-
-        fetchScores();
-    </script>
-</body>
-</html>
+                joinSec.style.display = 'block
