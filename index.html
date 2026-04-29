@@ -19,6 +19,7 @@
         button { padding: 10px 20px; background: #283593; color: white; border: none; border-radius: 4px; cursor: pointer; margin-top: 10px; font-weight: bold; }
         button:hover { background: #1a237e; }
         .rule-box { border: 2px solid #4caf50; padding: 20px; margin: 25px 0; border-radius: 8px; background-color: #e8f5e9; }
+        #join-section, #admin-section { display: none; }
     </style>
 </head>
 <body>
@@ -41,25 +42,27 @@
             </table>
 
             <div id="auth-section">
-                <input type="password" id="passcode" placeholder="Passcode">
-                <button onclick="checkAccess()">Unlock Admin Controls</button>
+                <input type="password" id="passcode" placeholder="Enter Passcode">
+                <button onclick="checkAccess()">Unlock Controls</button>
             </div>
 
             <div id="admin-panel" class="admin-panel">
-                <div style="border-bottom: 1px solid #ccc; padding-bottom: 15px;">
-                    <h4>New Player</h4>
+                <div id="join-section" style="border-bottom: 1px solid #ccc; padding-bottom: 15px;">
+                    <h4>New Player (Join Game)</h4>
                     <input type="text" id="reg-name" placeholder="Name">
                     <input type="text" id="reg-comm" placeholder="Kommentar (Optional)">
                     <button onclick="registerPlayer()">Add Player</button>
                 </div>
-                <div style="padding-top: 15px;">
-                    <h4>Update Stats</h4>
+
+                <div id="admin-section" style="padding-top: 15px;">
+                    <h4>Update Stats (Admin Only)</h4>
                     <select id="player-select"></select>
                     <input type="number" id="point-change" placeholder="+/- Punkte">
                     <input type="text" id="comm-update" placeholder="New Kommentar">
                     <button onclick="updateStats()">Save Changes</button>
                 </div>
-                <button onclick="location.reload()" style="background:#666; font-size: 11px;">Lock Controls</button>
+                
+                <button onclick="location.reload()" style="background:#666; font-size: 11px;">Lock & Logout</button>
             </div>
         </div>
 
@@ -74,7 +77,9 @@
         // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://afkzqrlhxldlewbdcskh.supabase.co'; 
         const SUPABASE_KEY = 'sb_publishable_EHY-LamJ3GGurrUU80WIPw_ZhQ16tkT';
-        const ACCESS_PASS = "Wind2026"; 
+        
+        const JOIN_PASS = "2026";      // Passcode just to add a name
+        const ADMIN_PASS = "bluesky"; // Passcode for both joining and editing scores
         // ---------------------
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
@@ -104,10 +109,24 @@
         }
 
         function checkAccess() {
-            if (document.getElementById('passcode').value === ACCESS_PASS) {
-                document.getElementById('admin-panel').style.display = 'block';
+            const pw = document.getElementById('passcode').value;
+            const panel = document.getElementById('admin-panel');
+            const joinSec = document.getElementById('join-section');
+            const adminSec = document.getElementById('admin-section');
+
+            if (pw === ADMIN_PASS) {
+                panel.style.display = 'block';
+                joinSec.style.display = 'block';
+                adminSec.style.display = 'block'; // Admin gets everything
                 document.getElementById('auth-section').style.display = 'none';
-            } else { alert("Wrong passcode!"); }
+            } else if (pw === JOIN_PASS) {
+                panel.style.display = 'block';
+                joinSec.style.display = 'block';
+                adminSec.style.display = 'none'; // Joiner only sees registration
+                document.getElementById('auth-section').style.display = 'none';
+            } else { 
+                alert("Wrong passcode!"); 
+            }
         }
 
         async function registerPlayer() {
@@ -132,10 +151,8 @@
             const pChange = parseInt(document.getElementById('point-change').value) || 0;
             const newComm = document.getElementById('comm-update').value.trim();
 
-            // 1. Get current score
             let { data } = await supabase.from('mahjong_players').select('Punkte').eq('Name', name).single();
             
-            // 2. Prepare update object
             let updates = { Punkte: data.Punkte + pChange };
             if (newComm !== "") updates.Kommentar = newComm;
 
