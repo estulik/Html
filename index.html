@@ -131,4 +131,70 @@
                 document.getElementById('auth-section').style.display = 'none';
             } else if (pw === JOIN_PASS) {
                 panel.style.display = 'block';
-                joinSec.style.display = 'block
+                joinSec.style.display = 'block';
+                adminSec.style.display = 'none';
+                document.getElementById('auth-section').style.display = 'none';
+            } else { 
+                alert("Wrong passcode!"); 
+            }
+        }
+
+        async function registerPlayer() {
+            const name = document.getElementById('reg-name').value.trim();
+            const comm = document.getElementById('reg-comm').value.trim();
+            if (!name) return alert("Name is required");
+
+            const { error } = await supabaseClient
+                .from('Mahjong')
+                .insert([{ Name: name, Punkte: 25000, Kommentar: comm }]);
+
+            if (error) alert("Error: " + error.message);
+            else {
+                document.getElementById('reg-name').value = '';
+                document.getElementById('reg-comm').value = '';
+                fetchScores();
+            }
+        }
+
+        async function updateStats() {
+            const name = document.getElementById('player-select').value;
+            const pChange = parseInt(document.getElementById('point-change').value) || 0;
+            const newComm = document.getElementById('comm-update').value.trim();
+
+            let { data, error: fetchError } = await supabaseClient.from('Mahjong').select('Punkte').eq('Name', name).single();
+            if (fetchError) return alert(fetchError.message);
+
+            let updates = { Punkte: (data.Punkte || 0) + pChange };
+            if (newComm !== "") updates.Kommentar = newComm;
+
+            const { error: updateError } = await supabaseClient.from('Mahjong').update(updates).eq('Name', name);
+            if (updateError) alert("Update Error: " + updateError.message);
+            else {
+                document.getElementById('point-change').value = '';
+                document.getElementById('comm-update').value = '';
+                fetchScores();
+            }
+        }
+
+        async function deletePlayer() {
+            const name = document.getElementById('delete-player-select').value;
+            if (!name) return;
+
+            if (!confirm(`Are you sure you want to PERMANENTLY delete ${name}?`)) return;
+
+            const { error } = await supabaseClient
+                .from('Mahjong')
+                .delete()
+                .eq('Name', name);
+
+            if (error) alert("Delete Error: " + error.message);
+            else {
+                alert(name + " deleted.");
+                fetchScores();
+            }
+        }
+
+        fetchScores();
+    </script>
+</body>
+</html>
