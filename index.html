@@ -20,7 +20,6 @@
         button:hover { background: #1a237e; }
         .rule-box { border: 2px solid #4caf50; padding: 20px; margin: 25px 0; border-radius: 8px; background-color: #e8f5e9; }
         #join-section, #admin-section { display: none; }
-        .error-msg { color: #c62828; font-weight: bold; text-align: center; padding: 10px; }
     </style>
 </head>
 <body>
@@ -31,14 +30,10 @@
             <h2>🀄 Live Leaderboard</h2>
             <table>
                 <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Punkte</th>
-                        <th>Kommentar</th>
-                    </tr>
+                    <tr><th>Name</th><th>Punkte</th><th>Kommentar</th></tr>
                 </thead>
                 <tbody id="leaderboard-body">
-                    <tr><td colspan="3" id="status-text">Fetching data...</td></tr>
+                    <tr><td colspan="3">Fetching data...</td></tr>
                 </tbody>
             </table>
 
@@ -49,14 +44,14 @@
 
             <div id="admin-panel" class="admin-panel">
                 <div id="join-section" style="border-bottom: 1px solid #ccc; padding-bottom: 15px;">
-                    <h4>New Player</h4>
+                    <h4>New Player (Code: 2026)</h4>
                     <input type="text" id="reg-name" placeholder="Name">
-                    <input type="text" id="reg-comm" placeholder="Kommentar (Optional)">
+                    <input type="text" id="reg-comm" placeholder="Kommentar">
                     <button onclick="registerPlayer()">Add Player</button>
                 </div>
 
                 <div id="admin-section" style="padding-top: 15px;">
-                    <h4>Update Stats (Admin Only)</h4>
+                    <h4>Update Stats (Code: bluesky)</h4>
                     <select id="player-select"></select>
                     <input type="number" id="point-change" placeholder="+/- Punkte">
                     <input type="text" id="comm-update" placeholder="New Kommentar">
@@ -67,17 +62,9 @@
             </div>
         </div>
 
-        <h2>Introduction</h2>
-        <p>Sprachcafé Style Mahjong, also known as Cantonese or Hong Kong Mahjong, is a popular variation characterized by its fast pace and exciting bonus rules.</p>
-        
+        <h2>Rules</h2>
         <div class="rule-box">
-            <h3>Winning (Hu 胡)</h3>
-            <p><strong>Standard Winning Hand:</strong> 4 sets (Pong, Kong, or Chi) + 1 pair</p>
-            <p><strong>Win (Hu):</strong> Highest priority. Declare "Hu!" immediately and reveal your complete hand.</p>
-        </div>
-
-        <div class="footer" style="text-align: center; font-size: 12px; color: #777; margin-top: 40px;">
-            Prepared for Sprachcafe Mahjong Night 2026
+            <p><strong>Win (Hu):</strong> 4 sets and 1 pair. Declare "Hu!" to win.</p>
         </div>
     </div>
 
@@ -85,16 +72,15 @@
         // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://afkzqrlhxldlewbdcskh.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFma3pxcmxoeGxkbGV3YmRjc2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDE1NDMsImV4cCI6MjA5MzAxNzU0M30.epc8Tdti3OXmYD-FCAk2Wuo0hTAU0auowkBUGq-qpgM';
-        
         const JOIN_PASS = "2026";
         const ADMIN_PASS = "bluesky";
         // ---------------------
 
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Initialize Supabase ONLY ONCE
+        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function fetchScores() {
-            console.log("Fetching scores...");
-            const { data, error } = await supabase
+            const { data, error } = await supabaseClient
                 .from('Mahjong')
                 .select('*')
                 .order('Punkte', { ascending: false });
@@ -103,8 +89,7 @@
             const select = document.getElementById('player-select');
 
             if (error) {
-                console.error("Supabase Error:", error);
-                tbody.innerHTML = `<tr><td colspan="3" class="error-msg">Connection Error: ${error.message}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="3" style="color:red">Error: ${error.message}</td></tr>`;
                 return;
             }
             
@@ -112,17 +97,12 @@
             select.innerHTML = '';
 
             if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">Connected. No players registered.</td></tr>';
+                tbody.innerHTML = '<tr><td colspan="3">No players found.</td></tr>';
                 return;
             }
 
             data.forEach(player => {
-                tbody.innerHTML += `
-                    <tr>
-                        <td>${player.Name}</td>
-                        <td><b>${(player.Punkte || 0).toLocaleString()}</b></td>
-                        <td><i>${player.Kommentar || ''}</i></td>
-                    </tr>`;
+                tbody.innerHTML += `<tr><td>${player.Name}</td><td><b>${(player.Punkte || 0).toLocaleString()}</b></td><td><i>${player.Kommentar || ''}</i></td></tr>`;
                 select.innerHTML += `<option value="${player.Name}">${player.Name}</option>`;
             });
         }
@@ -153,7 +133,7 @@
             const comm = document.getElementById('reg-comm').value.trim();
             if (!name) return alert("Name is required");
 
-            const { error } = await supabase
+            const { error } = await supabaseClient
                 .from('Mahjong')
                 .insert([{ Name: name, Punkte: 25000, Kommentar: comm }]);
 
@@ -170,22 +150,13 @@
             const pChange = parseInt(document.getElementById('point-change').value) || 0;
             const newComm = document.getElementById('comm-update').value.trim();
 
-            let { data, error: fetchError } = await supabase
-                .from('Mahjong')
-                .select('Punkte')
-                .eq('Name', name)
-                .single();
-            
+            let { data, error: fetchError } = await supabaseClient.from('Mahjong').select('Punkte').eq('Name', name).single();
             if (fetchError) return alert(fetchError.message);
 
             let updates = { Punkte: (data.Punkte || 0) + pChange };
             if (newComm !== "") updates.Kommentar = newComm;
 
-            const { error: updateError } = await supabase
-                .from('Mahjong')
-                .update(updates)
-                .eq('Name', name);
-
+            const { error: updateError } = await supabaseClient.from('Mahjong').update(updates).eq('Name', name);
             if (updateError) alert("Update Error: " + updateError.message);
             else {
                 document.getElementById('point-change').value = '';
@@ -194,7 +165,6 @@
             }
         }
 
-        // Initialize on load
         fetchScores();
     </script>
 </body>
