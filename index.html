@@ -20,6 +20,7 @@
         button:hover { background: #1a237e; }
         .rule-box { border: 2px solid #4caf50; padding: 20px; margin: 25px 0; border-radius: 8px; background-color: #e8f5e9; }
         #join-section, #admin-section { display: none; }
+        .error-msg { color: #c62828; font-weight: bold; text-align: center; padding: 10px; }
     </style>
 </head>
 <body>
@@ -37,7 +38,7 @@
                     </tr>
                 </thead>
                 <tbody id="leaderboard-body">
-                    <tr><td colspan="3">Fetching data...</td></tr>
+                    <tr><td colspan="3" id="status-text">Fetching data...</td></tr>
                 </tbody>
             </table>
 
@@ -67,16 +68,23 @@
         </div>
 
         <h2>Introduction</h2>
-        <p>Sprachcafé Style Mahjong rules continue below...</p>
+        <p>Sprachcafé Style Mahjong, also known as Cantonese or Hong Kong Mahjong, is a popular variation characterized by its fast pace and exciting bonus rules.</p>
+        
         <div class="rule-box">
-            <p><strong>Win (Hu):</strong> Highest priority. Declare "Hu!" immediately.</p>
+            <h3>Winning (Hu 胡)</h3>
+            <p><strong>Standard Winning Hand:</strong> 4 sets (Pong, Kong, or Chi) + 1 pair</p>
+            <p><strong>Win (Hu):</strong> Highest priority. Declare "Hu!" immediately and reveal your complete hand.</p>
+        </div>
+
+        <div class="footer" style="text-align: center; font-size: 12px; color: #777; margin-top: 40px;">
+            Prepared for Sprachcafe Mahjong Night 2026
         </div>
     </div>
 
     <script>
         // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://afkzqrlhxldlewbdcskh.supabase.co'; 
-        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFma3pxcmxoeGxkbGV3YmRjc2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDE1NDMsImV4cCI6MjA5MzAxNzU0M30.epc8Tdti3OXmYD-FCAk2Wuo0hTAU0auowkBUGq-qpgM'; // Use the 'anon' public key!
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFma3pxcmxoeGxkbGV3YmRjc2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDE1NDMsImV4cCI6MjA5MzAxNzU0M30.epc8Tdti3OXmYD-FCAk2Wuo0hTAU0auowkBUGq-qpgM';
         
         const JOIN_PASS = "2026";
         const ADMIN_PASS = "bluesky";
@@ -85,24 +93,27 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function fetchScores() {
+            console.log("Fetching scores...");
             const { data, error } = await supabase
                 .from('Mahjong')
                 .select('*')
                 .order('Punkte', { ascending: false });
 
+            const tbody = document.getElementById('leaderboard-body');
+            const select = document.getElementById('player-select');
+
             if (error) {
-                console.error("Fetch error:", error);
-                document.getElementById('leaderboard-body').innerHTML = `<tr><td colspan="3" style="color:red">Error: ${error.message}</td></tr>`;
+                console.error("Supabase Error:", error);
+                tbody.innerHTML = `<tr><td colspan="3" class="error-msg">Connection Error: ${error.message}</td></tr>`;
                 return;
             }
             
-            const tbody = document.getElementById('leaderboard-body');
-            const select = document.getElementById('player-select');
             tbody.innerHTML = '';
             select.innerHTML = '';
 
-            if (data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">No players found.</td></tr>';
+            if (!data || data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">Connected. No players registered.</td></tr>';
+                return;
             }
 
             data.forEach(player => {
@@ -146,7 +157,7 @@
                 .from('Mahjong')
                 .insert([{ Name: name, Punkte: 25000, Kommentar: comm }]);
 
-            if (error) alert("Insert Error: " + error.message);
+            if (error) alert("Error: " + error.message);
             else {
                 document.getElementById('reg-name').value = '';
                 document.getElementById('reg-comm').value = '';
@@ -183,7 +194,7 @@
             }
         }
 
-        // Initialize table
+        // Initialize on load
         fetchScores();
     </script>
 </body>
