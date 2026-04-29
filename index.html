@@ -20,8 +20,6 @@
         button:hover { background: #1a237e; }
         .rule-box { border: 2px solid #4caf50; padding: 20px; margin: 25px 0; border-radius: 8px; background-color: #e8f5e9; }
         #join-section, #admin-section { display: none; }
-        .danger-zone { margin-top: 20px; border-top: 2px dashed #c62828; padding-top: 15px; }
-        .error-text { color: #c62828; font-weight: bold; text-align: center; padding: 10px; }
     </style>
 </head>
 <body>
@@ -34,9 +32,7 @@
                 <thead>
                     <tr><th>Name</th><th>Punkte</th><th>Kommentar</th></tr>
                 </thead>
-                <tbody id="leaderboard-body">
-                    <tr><td colspan="3">Connecting to table...</td></tr>
-                </tbody>
+                <tbody id="leaderboard-body"></tbody>
             </table>
 
             <div id="auth-section">
@@ -58,164 +54,78 @@
                     <input type="number" id="point-change" placeholder="+/- Punkte">
                     <input type="text" id="comm-update" placeholder="New Kommentar">
                     <button onclick="updateStats()">Save Changes</button>
-
-                    <div class="danger-zone">
-                        <h4 style="color: #c62828;">Danger Zone: Delete Player</h4>
-                        <select id="delete-player-select"></select>
-                        <button onclick="deletePlayer()" style="background: #c62828;">Delete Permanently</button>
-                    </div>
+                    <hr>
+                    <h4 style="color:red">Delete Player</h4>
+                    <select id="del-select"></select>
+                    <button onclick="deletePlayer()" style="background:red">Delete</button>
                 </div>
-                
-                <button onclick="location.reload()" style="background:#666; font-size: 11px;">Lock & Logout</button>
+                <button onclick="location.reload()">Lock</button>
             </div>
         </div>
 
         <h2>Rules</h2>
         <div class="rule-box">
-            <p><strong>Win (Hu):</strong> 4 sets and 1 pair. Declare "Hu!" to win the round.</p>
+            <p><strong>Win (Hu):</strong> 4 sets and 1 pair. Declare "Hu!" to win.</p>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://afkzqrlhxldlewbdcskh.supabase.co'; 
         const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFma3pxcmxoeGxkbGV3YmRjc2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDE1NDMsImV4cCI6MjA5MzAxNzU0M30.epc8Tdti3OXmYD-FCAk2Wuo0hTAU0auowkBUGq-qpgM';
-        const JOIN_PASS = "2026";
-        const ADMIN_PASS = "bluesky";
-        // ---------------------
-
-        const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        const db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function fetchScores() {
+            const { data } = await db.from('Mahjong').select('*').order('Punkte', { ascending: false });
             const tbody = document.getElementById('leaderboard-body');
-            const select = document.getElementById('player-select');
-            const deleteSelect = document.getElementById('delete-player-select');
-
-            try {
-                const { data, error } = await supabaseClient
-                    .from('Mahjong')
-                    .select('*')
-                    .order('Punkte', { ascending: false });
-
-                if (error) throw error;
-                
-                tbody.innerHTML = '';
-                select.innerHTML = '';
-                deleteSelect.innerHTML = '';
-
-                if (!data || data.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="3">No players found in database.</td></tr>';
-                    return;
-                }
-
-                data.forEach(player => {
-                    tbody.innerHTML += `<tr><td>${player.Name}</td><td><b>${(player.Punkte || 0).toLocaleString()}</b></td><td><i>${player.Kommentar || ''}</i></td></tr>`;
-                    const opt = `<option value="${player.Name}">${player.Name}</option>`;
-                    select.innerHTML += opt;
-                    deleteSelect.innerHTML += opt;
-                });
-            } catch (err) {
-                console.error("Fetch Error:", err);
-                tbody.innerHTML = `<tr><td colspan="3" class="error-text">⚠️ Error: ${err.message || "Failed to fetch data"}</td></tr>`;
-            }
+            const sel = document.getElementById('player-select');
+            const dSel = document.getElementById('del-select');
+            
+            tbody.innerHTML = ''; sel.innerHTML = ''; dSel.innerHTML = '';
+            data.forEach(p => {
+                tbody.innerHTML += `<tr><td>${p.Name}</td><td><b>${(p.Punkte || 0).toLocaleString()}</b></td><td>${p.Kommentar || ''}</td></tr>`;
+                const opt = `<option value="${p.Name}">${p.Name}</option>`;
+                sel.innerHTML += opt; dSel.innerHTML += opt;
+            });
         }
 
         function checkAccess() {
             const pw = document.getElementById('passcode').value;
-            const panel = document.getElementById('admin-panel');
-            const joinSec = document.getElementById('join-section');
-            const adminSec = document.getElementById('admin-section');
-
-            if (pw === ADMIN_PASS) {
-                panel.style.display = 'block';
-                joinSec.style.display = 'block';
-                adminSec.style.display = 'block';
+            if (pw === "bluesky") {
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('join-section').style.display = 'block';
+                document.getElementById('admin-section').style.display = 'block';
                 document.getElementById('auth-section').style.display = 'none';
-            } else if (pw === JOIN_PASS) {
-                panel.style.display = 'block';
-                joinSec.style.display = 'block';
-                adminSec.style.display = 'none';
+            } else if (pw === "2026") {
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('join-section').style.display = 'block';
                 document.getElementById('auth-section').style.display = 'none';
-            } else { 
-                alert("Wrong passcode!"); 
-            }
+            } else { alert("Wrong!"); }
         }
 
         async function registerPlayer() {
-            const name = document.getElementById('reg-name').value.trim();
-            const comm = document.getElementById('reg-comm').value.trim();
-            if (!name) return alert("Name is required");
-
-            try {
-                const { error } = await supabaseClient
-                    .from('Mahjong')
-                    .insert([{ Name: name, Punkte: 25000, Kommentar: comm }]);
-
-                if (error) throw error;
-                
-                document.getElementById('reg-name').value = '';
-                document.getElementById('reg-comm').value = '';
-                await fetchScores();
-            } catch (err) {
-                alert("Failed to add player: " + err.message);
-            }
+            const n = document.getElementById('reg-name').value;
+            const c = document.getElementById('reg-comm').value;
+            await db.from('Mahjong').insert([{ Name: n, Punkte: 25000, Kommentar: c }]);
+            location.reload();
         }
 
         async function updateStats() {
-            const name = document.getElementById('player-select').value;
-            const pChange = parseInt(document.getElementById('point-change').value) || 0;
-            const newComm = document.getElementById('comm-update').value.trim();
-
-            try {
-                // Get current points
-                let { data, error: fetchError } = await supabaseClient
-                    .from('Mahjong')
-                    .select('Punkte')
-                    .eq('Name', name)
-                    .single();
-                
-                if (fetchError) throw fetchError;
-
-                let updates = { Punkte: (data.Punkte || 0) + pChange };
-                if (newComm !== "") updates.Kommentar = newComm;
-
-                const { error: updateError } = await supabaseClient
-                    .from('Mahjong')
-                    .update(updates)
-                    .eq('Name', name);
-
-                if (updateError) throw updateError;
-
-                document.getElementById('point-change').value = '';
-                document.getElementById('comm-update').value = '';
-                await fetchScores();
-            } catch (err) {
-                alert("Update Error: " + err.message);
-            }
+            const n = document.getElementById('player-select').value;
+            const p = parseInt(document.getElementById('point-change').value) || 0;
+            const c = document.getElementById('comm-update').value;
+            let { data } = await db.from('Mahjong').select('Punkte').eq('Name', n).single();
+            await db.from('Mahjong').update({ Punkte: data.Punkte + p, Kommentar: c }).eq('Name', n);
+            fetchScores();
         }
 
         async function deletePlayer() {
-            const name = document.getElementById('delete-player-select').value;
-            if (!name) return;
-
-            if (!confirm(`Are you sure you want to PERMANENTLY delete ${name}?`)) return;
-
-            try {
-                const { error } = await supabaseClient
-                    .from('Mahjong')
-                    .delete()
-                    .eq('Name', name);
-
-                if (error) throw error;
-                
-                alert(name + " deleted.");
-                await fetchScores();
-            } catch (err) {
-                alert("Delete Error: " + err.message);
+            const n = document.getElementById('del-select').value;
+            if (confirm("Delete " + n + "?")) {
+                await db.from('Mahjong').delete().eq('Name', n);
+                fetchScores();
             }
         }
 
-        // Initialize table
         fetchScores();
     </script>
 </body>
