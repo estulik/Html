@@ -21,6 +21,7 @@
         .rule-box { border: 2px solid #4caf50; padding: 20px; margin: 25px 0; border-radius: 8px; background-color: #e8f5e9; }
         #join-section, #admin-section { display: none; }
         .danger-zone { margin-top: 20px; border-top: 2px dashed #c62828; padding-top: 15px; }
+        .error-text { color: #c62828; font-weight: bold; text-align: center; padding: 10px; }
     </style>
 </head>
 <body>
@@ -86,36 +87,37 @@
         const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function fetchScores() {
-            const { data, error } = await supabaseClient
-                .from('Mahjong')
-                .select('*')
-                .order('Punkte', { ascending: false });
-
             const tbody = document.getElementById('leaderboard-body');
             const select = document.getElementById('player-select');
             const deleteSelect = document.getElementById('delete-player-select');
 
-            if (error) {
-                tbody.innerHTML = `<tr><td colspan="3" style="color:red">Error: ${error.message}</td></tr>`;
-                return;
-            }
-            
-            tbody.innerHTML = '';
-            select.innerHTML = '';
-            deleteSelect.innerHTML = '';
+            try {
+                const { data, error } = await supabaseClient
+                    .from('Mahjong')
+                    .select('*')
+                    .order('Punkte', { ascending: false });
 
-            if (!data || data.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="3">No players found.</td></tr>';
-                return;
-            }
-
-            data.forEach(player => {
-                tbody.innerHTML += `<tr><td>${player.Name}</td><td><b>${(player.Punkte || 0).toLocaleString()}</b></td><td><i>${player.Kommentar || ''}</i></td></tr>`;
+                if (error) throw error;
                 
-                const opt = `<option value="${player.Name}">${player.Name}</option>`;
-                select.innerHTML += opt;
-                deleteSelect.innerHTML += opt;
-            });
+                tbody.innerHTML = '';
+                select.innerHTML = '';
+                deleteSelect.innerHTML = '';
+
+                if (!data || data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3">No players found in database.</td></tr>';
+                    return;
+                }
+
+                data.forEach(player => {
+                    tbody.innerHTML += `<tr><td>${player.Name}</td><td><b>${(player.Punkte || 0).toLocaleString()}</b></td><td><i>${player.Kommentar || ''}</i></td></tr>`;
+                    const opt = `<option value="${player.Name}">${player.Name}</option>`;
+                    select.innerHTML += opt;
+                    deleteSelect.innerHTML += opt;
+                });
+            } catch (err) {
+                console.error("Fetch Error:", err);
+                tbody.innerHTML = `<tr><td colspan="3" class="error-text">⚠️ Error: ${err.message || "Failed to fetch data"}</td></tr>`;
+            }
         }
 
         function checkAccess() {
@@ -144,15 +146,18 @@
             const comm = document.getElementById('reg-comm').value.trim();
             if (!name) return alert("Name is required");
 
-            const { error } = await supabaseClient
-                .from('Mahjong')
-                .insert([{ Name: name, Punkte: 25000, Kommentar: comm }]);
+            try {
+                const { error } = await supabaseClient
+                    .from('Mahjong')
+                    .insert([{ Name: name, Punkte: 25000, Kommentar: comm }]);
 
-            if (error) alert("Error: " + error.message);
-            else {
+                if (error) throw error;
+                
                 document.getElementById('reg-name').value = '';
                 document.getElementById('reg-comm').value = '';
-                fetchScores();
+                await fetchScores();
+            } catch (err) {
+                alert("Failed to add player: " + err.message);
             }
         }
 
@@ -161,18 +166,31 @@
             const pChange = parseInt(document.getElementById('point-change').value) || 0;
             const newComm = document.getElementById('comm-update').value.trim();
 
-            let { data, error: fetchError } = await supabaseClient.from('Mahjong').select('Punkte').eq('Name', name).single();
-            if (fetchError) return alert(fetchError.message);
+            try {
+                // Get current points
+                let { data, error: fetchError } = await supabaseClient
+                    .from('Mahjong')
+                    .select('Punkte')
+                    .eq('Name', name)
+                    .single();
+                
+                if (fetchError) throw fetchError;
 
-            let updates = { Punkte: (data.Punkte || 0) + pChange };
-            if (newComm !== "") updates.Kommentar = newComm;
+                let updates = { Punkte: (data.Punkte || 0) + pChange };
+                if (newComm !== "") updates.Kommentar = newComm;
 
-            const { error: updateError } = await supabaseClient.from('Mahjong').update(updates).eq('Name', name);
-            if (updateError) alert("Update Error: " + updateError.message);
-            else {
+                const { error: updateError } = await supabaseClient
+                    .from('Mahjong')
+                    .update(updates)
+                    .eq('Name', name);
+
+                if (updateError) throw updateError;
+
                 document.getElementById('point-change').value = '';
                 document.getElementById('comm-update').value = '';
-                fetchScores();
+                await fetchScores();
+            } catch (err) {
+                alert("Update Error: " + err.message);
             }
         }
 
@@ -182,18 +200,22 @@
 
             if (!confirm(`Are you sure you want to PERMANENTLY delete ${name}?`)) return;
 
-            const { error } = await supabaseClient
-                .from('Mahjong')
-                .delete()
-                .eq('Name', name);
+            try {
+                const { error } = await supabaseClient
+                    .from('Mahjong')
+                    .delete()
+                    .eq('Name', name);
 
-            if (error) alert("Delete Error: " + error.message);
-            else {
+                if (error) throw error;
+                
                 alert(name + " deleted.");
-                fetchScores();
+                await fetchScores();
+            } catch (err) {
+                alert("Delete Error: " + err.message);
             }
         }
 
+        // Initialize table
         fetchScores();
     </script>
 </body>
