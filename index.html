@@ -48,7 +48,7 @@
 
             <div id="admin-panel" class="admin-panel">
                 <div id="join-section" style="border-bottom: 1px solid #ccc; padding-bottom: 15px;">
-                    <h4>New Player (Join Game)</h4>
+                    <h4>New Player</h4>
                     <input type="text" id="reg-name" placeholder="Name">
                     <input type="text" id="reg-comm" placeholder="Kommentar (Optional)">
                     <button onclick="registerPlayer()">Add Player</button>
@@ -76,32 +76,40 @@
     <script>
         // --- CONFIGURATION ---
         const SUPABASE_URL = 'https://afkzqrlhxldlewbdcskh.supabase.co'; 
-        const SUPABASE_KEY = 'sb_publishable_EHY-LamJ3GGurrUU80WIPw_ZhQ16tkT';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImFma3pxcmxoeGxkbGV3YmRjc2toIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0NDE1NDMsImV4cCI6MjA5MzAxNzU0M30.epc8Tdti3OXmYD-FCAk2Wuo0hTAU0auowkBUGq-qpgM'; // Use the 'anon' public key!
         
-        const JOIN_PASS = "2026";      // Passcode just to add a name
-        const ADMIN_PASS = "bluesky"; // Passcode for both joining and editing scores
+        const JOIN_PASS = "2026";
+        const ADMIN_PASS = "bluesky";
         // ---------------------
 
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         async function fetchScores() {
             const { data, error } = await supabase
-                .from('mahjong_players')
+                .from('Mahjong')
                 .select('*')
                 .order('Punkte', { ascending: false });
 
-            if (error) return console.error(error);
+            if (error) {
+                console.error("Fetch error:", error);
+                document.getElementById('leaderboard-body').innerHTML = `<tr><td colspan="3" style="color:red">Error: ${error.message}</td></tr>`;
+                return;
+            }
             
             const tbody = document.getElementById('leaderboard-body');
             const select = document.getElementById('player-select');
             tbody.innerHTML = '';
             select.innerHTML = '';
 
+            if (data.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3">No players found.</td></tr>';
+            }
+
             data.forEach(player => {
                 tbody.innerHTML += `
                     <tr>
                         <td>${player.Name}</td>
-                        <td><b>${player.Punkte.toLocaleString()}</b></td>
+                        <td><b>${(player.Punkte || 0).toLocaleString()}</b></td>
                         <td><i>${player.Kommentar || ''}</i></td>
                     </tr>`;
                 select.innerHTML += `<option value="${player.Name}">${player.Name}</option>`;
@@ -117,12 +125,12 @@
             if (pw === ADMIN_PASS) {
                 panel.style.display = 'block';
                 joinSec.style.display = 'block';
-                adminSec.style.display = 'block'; // Admin gets everything
+                adminSec.style.display = 'block';
                 document.getElementById('auth-section').style.display = 'none';
             } else if (pw === JOIN_PASS) {
                 panel.style.display = 'block';
                 joinSec.style.display = 'block';
-                adminSec.style.display = 'none'; // Joiner only sees registration
+                adminSec.style.display = 'none';
                 document.getElementById('auth-section').style.display = 'none';
             } else { 
                 alert("Wrong passcode!"); 
@@ -135,10 +143,10 @@
             if (!name) return alert("Name is required");
 
             const { error } = await supabase
-                .from('mahjong_players')
+                .from('Mahjong')
                 .insert([{ Name: name, Punkte: 25000, Kommentar: comm }]);
 
-            if (error) alert(error.message);
+            if (error) alert("Insert Error: " + error.message);
             else {
                 document.getElementById('reg-name').value = '';
                 document.getElementById('reg-comm').value = '';
@@ -151,17 +159,23 @@
             const pChange = parseInt(document.getElementById('point-change').value) || 0;
             const newComm = document.getElementById('comm-update').value.trim();
 
-            let { data } = await supabase.from('mahjong_players').select('Punkte').eq('Name', name).single();
+            let { data, error: fetchError } = await supabase
+                .from('Mahjong')
+                .select('Punkte')
+                .eq('Name', name)
+                .single();
             
-            let updates = { Punkte: data.Punkte + pChange };
+            if (fetchError) return alert(fetchError.message);
+
+            let updates = { Punkte: (data.Punkte || 0) + pChange };
             if (newComm !== "") updates.Kommentar = newComm;
 
-            const { error } = await supabase
-                .from('mahjong_players')
+            const { error: updateError } = await supabase
+                .from('Mahjong')
                 .update(updates)
                 .eq('Name', name);
 
-            if (error) alert(error.message);
+            if (updateError) alert("Update Error: " + updateError.message);
             else {
                 document.getElementById('point-change').value = '';
                 document.getElementById('comm-update').value = '';
@@ -169,6 +183,7 @@
             }
         }
 
+        // Initialize table
         fetchScores();
     </script>
 </body>
