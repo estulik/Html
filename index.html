@@ -135,7 +135,7 @@
 
             const { error } = await supabaseClient
                 .from('Mahjong')
-                .insert([{ Name: name, Punkte: 25000, Kommentar: comm }]);
+                .insert([{ Name: name, Punkte: 0, Kommentar: comm }]);
 
             if (error) alert("Error: " + error.message);
             else {
