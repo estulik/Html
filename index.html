@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Global Voices - Interviews</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 1rem 0;
+            text-align: center;
+        }
+        .lang-switch {
+            margin-top: 10px;
+        }
+        .lang-switch button {
+            background: none;
+            border: 1px solid white;
+            color: white;
+            padding: 5px 10px;
+            cursor: pointer;
+            margin: 0 5px;
+            border-radius: 3px;
+        }
+        .lang-switch button:hover {
+            background-color: white;
+            color: #2c3e50;
+        }
+        .container {
+            width: 80%;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+        .admin-panel {
+            background: #e74c3c;
+            color: white;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .admin-panel input[type="password"] {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        .blog-post {
+            background: white;
+            padding: 20px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .blog-post h2 {
+            margin-top: 0;
+            color: #2980b9;
+        }
+        .date {
+            font-size: 0.8em;
+            color: #777;
+        }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1 id="site-title">Global Voices: Interviews</h1>
+    <div class="lang-switch">
+        <button onclick="changeLang('en')">English</button>
+        <button onclick="changeLang('de')">Deutsch</button>
+        <button onclick="changeLang('zh')">中文</button>
+    </div>
+</header>
+
+<div class="container">
+    <div class="admin-panel">
+        <span id="admin-text">Admin-Bereich: Post hochladen</span>
+        <form onsubmit="alert('Achtung: Dies erfordert ein Backend (Server), um zu funktionieren!'); return false;">
+            <input type="password" placeholder="Passwort..." required>
+            <input type="file" accept=".docx" required>
+            <button type="submit">Upload .docx</button>
+        </form>
+    </div>
+
+    <div class="blog-post">
+        <h2 id="post1-title">Interview mit einem Forscher</h2>
+        <p class="date" id="post1-date">11. Mai 2026</p>
+        <p id="post1-content">Hier steht der Text des Interviews. In einem echten System würde dieser Text dynamisch aus einer Datenbank geladen werden, basierend auf der ausgewählten Sprache.</p>
+    </div>
+</div>
+
+<script>
+    // Einfache Logik für den Sprachwechsel im Frontend
+    const content = {
+        'en': {
+            'site-title': 'Global Voices: Interviews',
+            'admin-text': 'Admin Area: Upload Post',
+            'post1-title': 'Interview with a Researcher',
+            'post1-date': 'May 11, 2026',
+            'post1-content': 'Here is the text of the interview. In a real system, this text would be dynamically loaded from a database based on the selected language.'
+        },
+        'de': {
+            'site-title': 'Global Voices: Interviews',
+            'admin-text': 'Admin-Bereich: Post hochladen',
+            'post1-title': 'Interview mit einem Forscher',
+            'post1-date': '11. Mai 2026',
+            'post1-content': 'Hier steht der Text des Interviews. In einem echten System würde dieser Text dynamisch aus einer Datenbank geladen werden, basierend auf der ausgewählten Sprache.'
+        },
+        'zh': {
+            'site-title': '全球声音：访谈录',
+            'admin-text': '管理区：上传文章',
+            'post1-title': '研究员访谈',
+            'post1-date': '2026年5月11日',
+            'post1-content': '这是采访的正文。在真实的系统中，这段文本将根据所选语言从数据库中动态加载。'
+        }
+    };
+
+    function changeLang(lang) {
+        document.getElementById('site-title').innerText = content[lang]['site-title'];
+        document.getElementById('admin-text').innerText = content[lang]['admin-text'];
+        document.getElementById('post1-title').innerText = content[lang]['post1-title'];
+        document.getElementById('post1-date').innerText = content[lang]['post1-date'];
+        document.getElementById('post1-content').innerText = content[lang]['post1-content'];
+    }
+</script>
+
+</body>
+</html>
